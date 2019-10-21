@@ -2,6 +2,9 @@
  * By: Developers MLHL
  * Date Created: 9/22/19
  * Purpose: Creation of a randomized number linking game
+ * 
+ * Eventually add: @author
+ *                 @version
  */
 
 import java.util.*;
@@ -13,7 +16,10 @@ public class NumLink {
 	//Could do a big function, but that would require more indepth code of class creation, so as to not loop between two numbers
 	//Could make a function using node locations based on similar data, such as the number they would share
 	
-	
+	/*
+	 * Prints out the grid layout in the terminal
+	 * @param arr1   a 2D array that holds all the nodes in a nxn grid
+	 */
 	public static void printGraph(int[][] arr1) {
 		int size = arr1.length;
 		for(int i = 0; i < size; i++){
@@ -26,7 +32,15 @@ public class NumLink {
 	}//end printGraph
 	
 	
-	//coordinate one, coordinate two, the randomly created value, and the size
+	/*
+	 * Creates a unique node (start or end) that is placed on the array
+	 * @param a      the x coordinate for the uniqueNode
+	 * @param b      the y coordinate for the uniqueNode
+	 * @param v      the number of the node
+	 * @param s      the size of the array (n)
+	 * @param arr    the array containing nodes
+	 * @return Node  a node with the cordinates, value, and is considered to be a starting node
+	 */
 	public static Node findUniqueTile(int a, int b, int v, int s, ArrayList<Node> arr) {	
 		boolean newTile = false;
 		boolean foundTile = false;;
@@ -56,7 +70,11 @@ public class NumLink {
 		return x;
 	}//end findUniqueTile
 	
-	
+	/*
+	 * Utilizes the functions above to create a gird that has nodes that can be added to the grid
+	 * @param args 
+	 * @return void
+	 */
 	public static void main(String[] args) {
 		//basic code to test arrays and printing lines
 		int k = 4;
