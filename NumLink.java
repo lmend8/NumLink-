@@ -1,4 +1,11 @@
 
+import java.io.BufferedReader;
+import java.io.File;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -16,6 +23,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 
@@ -23,6 +31,93 @@ public class NumLink extends Application {
 
 	Stage window;
 	VBox layout;
+	Node [][] board = new Node[5][5];
+	int mousePositionX;
+	int mousePositionY;
+	private int NORTH;
+	private int SOUTH;
+	private int WEST;
+	private int EAST;
+
+	
+	/**
+	 * method for loading the levels from a text file.
+	 * @param level load the level by number 
+	 */
+
+	public void loadLevel(int level) {
+
+		String line = null;	
+		String fileName = "level"+ level +".txt"; 
+		File file = new File(fileName);
+		FileReader fr = null;
+		try {
+			fr = new FileReader(file);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		BufferedReader br = new BufferedReader(fr);
+		try {
+			line = br.readLine();
+
+			int lineCounter = 0; 
+			while(line != null){
+				String[] tokens = line.split(",");
+				for(int i =0; i<board.length; i++) {
+					board[i][lineCounter].init();
+					if (tokens[i].equals("0")) {
+						continue;
+					} else if (tokens[i].equals("X")) {
+						board[i][lineCounter].setText("X");
+						board[i][lineCounter].setColor(Color.GRAY);
+						board[i][lineCounter].setxSlotPosition(i);
+						board[i][lineCounter].setySlotPosition(lineCounter);
+						board[i][lineCounter].setEndNode(true);	
+						board[i][lineCounter].setStartNode(false);
+
+					} else {
+						board[i][lineCounter].setText(tokens[i]);
+						board[i][lineCounter].setColor(Color.GRAY);
+						board[i][lineCounter].setxSlotPosition(i);
+						board[i][lineCounter].setySlotPosition(lineCounter);
+						board[i][lineCounter].setStartNode(true);
+						board[i][lineCounter].setEndNode(false);
+					}				
+				}
+				lineCounter ++;
+				line = br.readLine();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+	}
+
+	/*
+	 * method to detected the node object in our board when the user click on the mouse
+	 */
+	
+	public Node getNodeFromCurrentMousePostion() {
+
+		for (int i = 0; i < board.length; i++) {
+			for (int j = 0; j < board[i].length; j++) {
+				int x = board[i][j].getxSlotPosition() +1;
+				int y = board[i][j].getySlotPosition() +1;
+				if ( 10 < mousePositionX && mousePositionX < x * 100 -5 &&  10 < mousePositionY  && mousePositionY < y * 100 -5 ) {
+					return board[i][j]; 	
+				}
+			}
+		}	
+		return null;
+	}
+
+
+	/*
+	 * Method to draw the grid in our board. 
+	 */
 
 	public void drawGrid(GraphicsContext gc) {
 		gc.setFill(Color.SLATEGRAY);
@@ -32,43 +127,70 @@ public class NumLink extends Application {
 			for (int y = 10; y < 500; y += 100) {
 				gc.setFill(Color.BLACK);
 				gc.fillRect(x, y, 85, 85);
-
+		
 			}
 		}
 	}
 
+	
+  /* 
+   * Draws lines and circles by going over the attributes of every node.
+   *
+   * @param gc Handle to graphics context
+   */
+	
 	public void drawOverlay(GraphicsContext gc) {
 
-		drawCircle(gc, 22, 24, "3", Color.GRAY);
-		drawCircle(gc, 22, 225, "X", Color.GRAY);
-		drawCircle(gc, 222, 22, "4", Color.GRAY);
-		drawCircle(gc, 222, 325, "X", Color.GRAY);
-		drawCircle(gc, 423, 23, "5", Color.GRAY);
-		drawCircle(gc, 423, 425, "X", Color.GRAY);
+		for(int i =0; i<board.length; i++) {
+			for(int j = 0; j<board[i].length; j++) {
+				
+				
+				// draw circles. 
+				if(board[i][j].isStartNode() || board[i][j].isEndNode()) {
+					drawCircle(gc, board[i][j].getxSlotPosition(),board[i][j].getySlotPosition(), board[i][j].getText(), board[i][j].getColor());
+				}
+			}
+		}
 
 	}
 
-	private void drawCircle(GraphicsContext gc, int x, int y, String text, Color color) {
+	
+	/*
+	 * Method to draws our node into the board
+	 * @param gc  Handle to graphic context
+	 * @param xSlotPosition The x slot position in the board. 
+	 * @param ySlotPosition The y slot position in the board.
+	 * @param text String to indicate whether the node is a startNode or endNode
+	 * @param color  Color of the node.
+	 */
+	private void drawCircle(GraphicsContext gc, int xSlotPosition, int ySlotPosition, String text, Color color) {
 
 		gc.setFill(color);
-		gc.fillOval(x, y, 60, 60);
+		gc.fillOval(xSlotPosition * 100+20, ySlotPosition* 100 +20, 60, 60);
 		gc.setFill(Color.WHITE);
-		gc.fillText(text, x + 26, y + 32);
+		gc.setFont(Font.font(20));
+		gc.fillText(text, xSlotPosition*100 + 45, ySlotPosition*100 + 55);
+
 
 	}
 
-	public void drawLine(GraphicsContext gc) {
-
-		gc.setLineWidth(7.0);
-		gc.setStroke(Color.YELLOW);
-		gc.strokeLine(x, y, x2, y2);
+	
+	public void drawLine(GraphicsContext gc) { 
+		//gc.setLineWidth(7.0);
+		//gc.setStroke(Color.YELLOW);
+		//gc.strokeLine(x, y, x2, y2);
+		
 
 		canvas.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent e) {
-				System.out.println("mouse press");
-				x = 55; // x-coordinate of mouse.
-				y = 88; // y-coordinate of mouse.
+				//System.out.println("mouse press");
+				mousePositionX = (int) e.getX(); // x-coordinate of mouse.
+				mousePositionY = (int) e.getY(); // y-coordinate of mouse.
+				Node test = getNodeFromCurrentMousePostion();
+				 x = test.getxSlotPosition();
+				 y = test.getySlotPosition();
+				System.out.println("x = "  + x + " y = " + y);
 			}
 		});
 
@@ -76,7 +198,7 @@ public class NumLink extends Application {
 
 			@Override
 			public void handle(MouseEvent event) {
-				System.out.println("mouse dragging");
+				//System.out.println("mouse dragging");
 
 				x2 = event.getX(); // x-coordinate of mouse.
 				y2 = event.getY(); // y-coordinate of mouse.
@@ -87,7 +209,7 @@ public class NumLink extends Application {
 		canvas.setOnMouseReleased(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent me) {
-				System.out.println("Mouse released");
+				//System.out.println("Mouse released");
 
 			}
 		});
@@ -108,6 +230,14 @@ public class NumLink extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+
+		for(int i=0; i<board.length; i++) {
+			for(int j=0; j<board[i].length; j++) {
+				board[i][j] = new Node();
+			}
+		}
+
+		loadLevel(1);
 
 		// Initialize tools
 		window = primaryStage;
@@ -158,7 +288,7 @@ public class NumLink extends Application {
 		layout.getChildren().add(menubar);
 		layout.getChildren().add(canvas);
 
-		Scene scene = new Scene(layout, 520, 550);
+		Scene scene = new Scene(layout, 505, 530);
 
 		aboutMenu.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
@@ -178,14 +308,15 @@ public class NumLink extends Application {
 		window.setScene(scene);
 		window.show();
 
-		// canvas.setOnMouseDragged(e -> mouseDrag(e));
 
 		new AnimationTimer() {
 			@Override
 			public void handle(long currentTimeInNanoSeconds) {
+
 				drawGrid(gc);
 				drawOverlay(gc);
 				drawLine(gc);
+			
 
 			}
 		}.start();
@@ -197,18 +328,5 @@ public class NumLink extends Application {
 		});
 
 	}
-
-	public void mouseDrag(MouseEvent e) {
-
-		if (dragging == false)
-			return; // Nothing to do because the user isn't drawing.
-
-		// double x = e.getX(); // x-coordinate of mouse.
-		// double y = e.getY(); // y-coordinate of mouse.
-
-		gc.setLineWidth(5.0);
-		gc.strokeLine(50, 80, 52, 250); // Draw the line.
-
-	} // end mouseDragged()
 
 }
