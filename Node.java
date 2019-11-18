@@ -17,7 +17,34 @@ public class Node {
 		private boolean eastLine;
 		private boolean westLine;
 		
-		public void init() {
+		private boolean solved;
+		private boolean visited;
+		private boolean uncrossable;
+		
+		public Node () 
+		{
+			initialize();
+		}
+		
+		public boolean isUncrossable() {
+			return uncrossable;
+		}
+		public void setUncrossable(boolean uncrossable) {
+			this.uncrossable = uncrossable;
+		}
+		public boolean isVisited() {
+			return visited;
+		}
+		public void setVisited(boolean visited) {
+			this.visited = visited;
+		}
+		public boolean isSolved() {
+			return solved;
+		}
+		public void setSolved(boolean solved) {
+			this.solved = solved;
+		}
+		public void initialize() {
 			this.xSlotPosition = 0;
 			this.ySlotPosition = 0;
 			this.startNode = false;
@@ -28,6 +55,9 @@ public class Node {
 			this.southLine = false;
 			this.eastLine = false;
 			this.westLine = false;
+			this.uncrossable = false;
+			this.solved = false;
+			this.visited = false;
 			
 		}
 		public int getNumber() {
@@ -98,6 +128,61 @@ public class Node {
 		public void setWestLine(boolean westLine) {
 			this.westLine = westLine;
 		}
+		
+		/**
+		   * Resets attributes for a start node.
+		   */
+		  public void resetStartNode()
+		  {
+		    northLine = false;
+		    southLine = false;
+		    eastLine = false;
+		    westLine = false;
+		    color = Color.GRAY;
+		    visited = false;
+		    solved = false;
+		    uncrossable = true;
+		  }
+
+		  /**
+		   * Performs a soft reset of the start node y just erasing all lines. This is
+		   * useful when mouse dragging back to initial node.
+		   */
+		  public void softReset()
+		  {
+		    northLine = false;
+		    southLine = false;
+		    eastLine = false;
+		    westLine = false;
+		  }
+
+		  /**
+		   * Resets attributes for a end node.
+		   */
+		  public void resetEndNode()
+		  {
+		    northLine = false;
+		    southLine = false;
+		    eastLine = false;
+		    westLine = false;
+		    color = Color.GRAY;
+		    visited = false;
+		    solved = false;
+		    uncrossable = false;
+		  }
+
+		  /**
+		   * Resets attributes for line node.
+		   */
+		  public void resetLine()
+		  {
+		    northLine = false;
+		    southLine = false;
+		    eastLine = false;
+		    westLine = false;
+		    uncrossable = false;
+		    visited = false;
+		  }
 	
 	
 	
