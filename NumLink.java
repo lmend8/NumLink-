@@ -2,7 +2,6 @@
 import java.io.BufferedReader;
 import java.io.File;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,9 +24,12 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class NumLink extends Application {
 
@@ -36,6 +38,8 @@ public class NumLink extends Application {
 	Node[][] board = new Node[5][5];
 	int mousePositionX;
 	int mousePositionY;
+	private AudioClip music;
+	
 	public static final int GRID_SIZE = 5;
 	public static final int SLOT_SIZE_WITH_BORDER = 100;
 	public static final int SLOT_SIZE = SLOT_SIZE_WITH_BORDER - 20;
@@ -91,7 +95,7 @@ public class NumLink extends Application {
 			}
 		}
 
-		loadLevel(1);
+		loadLevel("level1.txt");
 
 		// Initialize tools
 		window = primaryStage;
@@ -106,14 +110,51 @@ public class NumLink extends Application {
 		Menu aboutMenu = new Menu("About");
 
 		// Menu items
+		MenuItem newGame = new MenuItem("New Game...");
+		newGame.setOnAction(new EventHandler<ActionEvent>()
+	    {
+	      @Override
+	      public void handle(ActionEvent event)
+	      {
+	        try
+	        {
+	          loadLevel("level1.txt");
+	        }
+	        catch (IOException e)
+	        {
+	          e.printStackTrace();
+	        }
+	      }
+	    });
 		MenuItem openFile = new MenuItem("Open...");
+		openFile.setOnAction(new EventHandler<ActionEvent>()
+	    {
+	    @Override
+	      public void handle(ActionEvent event)
+	      {
+	        try
+	        {
+	          FileChooser fileChooser = new FileChooser();
+	          fileChooser.setTitle("Open Resource File");
+	          fileChooser.getExtensionFilters().addAll(
+	            new ExtensionFilter("Text Files", "*.txt"),
+	            new ExtensionFilter("All Files", "*.*"));
+	          File selectedFile = fileChooser.showOpenDialog(primaryStage);
+	          loadLevel(selectedFile.getAbsolutePath());
+	        }
+	        catch (IOException e)
+	        {
+	          e.printStackTrace();
+	        }
+	      }  
+	    });
+		
+		fileMenu.getItems().add(newGame);
 		fileMenu.getItems().add(openFile);
 		fileMenu.getItems().add(new SeparatorMenuItem());
-		MenuItem settings = new MenuItem("Settings...");
-		editMenu.getItems().add(settings);
-		editMenu.getItems().add(new SeparatorMenuItem());
 		MenuItem exitFile = new MenuItem("Exit...");
 		fileMenu.getItems().add(exitFile);
+		
 
 		exitFile.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
@@ -127,7 +168,7 @@ public class NumLink extends Application {
 		gc = canvas.getGraphicsContext2D();
 
 		// edit menu
-		editMenu.getItems().add(new MenuItem("MakeSize..."));
+		editMenu.getItems().add(new MenuItem("MakeLevel..."));
 
 		// about menu
 		aboutMenu.getItems().add(new MenuItem("About game"));
@@ -156,6 +197,9 @@ public class NumLink extends Application {
 				window.setScene(about);
 			}
 		});
+
+		music = new AudioClip(new File("music.mp3").toURI().toString());
+		music.play();
 
 		window.setScene(scene);
 		window.show();
@@ -214,7 +258,7 @@ public class NumLink extends Application {
 				if (levelSolved) {
 					drawLevelPassedScreen(gc);
 				}
-
+				
 			}
 		}.start();
 
@@ -226,73 +270,64 @@ public class NumLink extends Application {
 	 * @param level load the level by number
 	 */
 
-	public void loadLevel(int level) {
+	private void loadLevel(String levelFilePath) throws IOException
+	  {
+	    File file = new File(levelFilePath);
+	    @SuppressWarnings("resource")
+		BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+	    numberOfSolutionsLeft = 0;
+	    levelSolved = false;
+	    currentSolutionStartNode = null;
+	    currentSolutionEndNode = null;
 
-		numberOfSolutionsLeft = 0;
-		levelSolved = false;
-		currentSolutionStartNode = null;
-		currentSolutionEndNode = null;
+	    String line;
+	    int lineNumber = 0;
+	    while ((line = bufferedReader.readLine()) != null)
+	    {
+	      String[] cells = line.split(",");
+	      for (int cellNumber = 0; cellNumber < cells.length; cellNumber++)
+	      {
+	        String cell = cells[cellNumber];
+	        board[cellNumber][lineNumber].initialize();
+	        board[cellNumber][lineNumber].setxSlotPosition(cellNumber);
+	        board[cellNumber][lineNumber].setySlotPosition(lineNumber);
+	        if (cell.equals("0"))
+	        {
+	          continue;
+	        }
+	        else
+	        {
+	          board[cellNumber][lineNumber].setText(cell);
+	          board[cellNumber][lineNumber].setColor(Color.GRAY);
 
-		String line = null;
-		String fileName = "level" + level + ".txt";
-		File file = new File(fileName);
-		FileReader fr = null;
-		try {
-			fr = new FileReader(file);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		BufferedReader br = new BufferedReader(fr);
-		try {
-			line = br.readLine();
+	          int nodeNumber = 0;
+	          try
+	          {
+	            nodeNumber = Integer.parseInt(cell);
+	          }
+	          catch(NumberFormatException e)
+	          {
+	            //e.printStackTrace();
+	          }
 
-			int lineCounter = 0;
-			while (line != null) {
-				String[] tokens = line.split(",");
-				for (int i = 0; i < board.length; i++) {
-					board[i][lineCounter].initialize();
-					board[i][lineCounter].setxSlotPosition(i);
-					board[i][lineCounter].setySlotPosition(lineCounter);
-
-					if (tokens[i].equals("0")) {
-						continue;
-					} else if (tokens[i].equals("X")) {
-						board[i][lineCounter].setText("X");
-						board[i][lineCounter].setColor(Color.GRAY);
-						board[i][lineCounter].setEndNode(true);
-						board[i][lineCounter].setStartNode(false);
-
-					} else {
-						int nodeNumber = 0;
-						try {
-							nodeNumber = Integer.parseInt(tokens[i]);
-						} catch (NumberFormatException e) {
-
-						}
-						if (nodeNumber != 0) {
-							board[i][lineCounter].setNumber(nodeNumber);
-							board[i][lineCounter].setStartNode(true);
-							board[i][lineCounter].setUncrossable(true);
-							numberOfSolutionsLeft++;
-						}
-						board[i][lineCounter].setText(tokens[i]);
-						board[i][lineCounter].setColor(Color.GRAY);
-						board[i][lineCounter].setStartNode(true);
-						board[i][lineCounter].setEndNode(false);
-					}
-				}
-				lineCounter++;
-				line = br.readLine();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		solutionStacks.clear();
-
-	}
+	          if (nodeNumber != 0)
+	          {
+	            board[cellNumber][lineNumber].setNumber(nodeNumber);
+	            board[cellNumber][lineNumber].setStartNode(true);
+	            board[cellNumber][lineNumber].setUncrossable(true);
+	            numberOfSolutionsLeft++;
+	          }
+	          else
+	          {
+	            board[cellNumber][lineNumber].setEndNode(true);
+	          }
+	        }
+	      }
+	      lineNumber++;
+	    }
+	    
+	    solutionStacks.clear();
+	  }
 
 	/**
 	 * Returns the appropriate node color for the given node number.
@@ -747,7 +782,7 @@ public class NumLink extends Application {
 				&& (mousePositionY - 30) <= (NEXT_LEVEL_BUTTON_Y + NEXT_LEVEL_BUTTON_HEIGHT)) {
 			System.out.println("Next level button pushed");
 			currentLevel++;
-			loadLevel(currentLevel);
+			loadLevel("level"+currentLevel+".txt");
 		}
 		// if repeat button pushed
 		else if (mousePositionX >= REPEAT_LEVEL_BUTTON_X
@@ -755,7 +790,7 @@ public class NumLink extends Application {
 				&& (mousePositionY - 30) >= REPEAT_LEVEL_BUTTON_Y
 				&& (mousePositionY - 30) <= (REPEAT_LEVEL_BUTTON_Y + REPEAT_LEVEL_BUTTON_HEIGHT)) {
 			System.out.println("Repeat level button pushed");
-			loadLevel(currentLevel);
+			loadLevel("level"+currentLevel+".txt");
 		}
 	}
 
