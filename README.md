@@ -22,4 +22,10 @@ This project is the source code for NumLink. Follow the instruction below to com
 # Dependencies 
 Download and install JavaFx framework from https://openjfx.io/. For example, for mac, you need to download javafx-mx.jar library into /Library/Java/VirtualMachines/jdk1.8.0_131.jdk/Contents/Home/lib and modify/specify the apropriate build path in your IDE. 
 
+# How to make a Level 
+ Making new levels in very easy in NumLink. All level are specified in text format, comma delimeted. To make a new Level just add a text file, name it "level<levelNumber>.txt". make sure it doesn't not conflict with other level files already specifed. Place your text file in the root directory of the provided project along with the other level files. You might want to start with one of the level files that is already provide, otherwise follow these instruction: 
+    1. The file must five rows and five columns.
+    2. Each cell can only contain one of three values, a non-zero number, an "X" , or 0. A non-zero number denotes the number of slots that must be used in the solution. "X" denotes the endpoint. 0 denotes an empty cell.
+
+
 
